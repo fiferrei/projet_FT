@@ -20,12 +20,13 @@ void proximity(void){
 		quarter_turn_left();
 		merit++;
 	}
-	else if (get_calibrated_prox(0)<2 && get_calibrated_prox(7)<2 &&
-			get_calibrated_prox(5)<2 && get_calibrated_prox(2)<2 &&
+	else if (get_calibrated_prox(0)<8 && get_calibrated_prox(7)<8 &&
+			get_calibrated_prox(5)<8 && get_calibrated_prox(2)<8 &&
 			get_state_motor()==1 && merit>1){
+		merit=0;
 		while (get_state_motor()==1){
 			turn_back();
-			playMelody(1,2, song);
+			//playMelody(1,2, song);
 		}
 	}
 }

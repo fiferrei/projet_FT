@@ -65,8 +65,13 @@ void quarter_turn_left(void){
 
 void go_forward(void){
 	if (state_motor==ON){
-		left_motor_set_speed(POSITIVE_SPEED);
-		right_motor_set_speed(POSITIVE_SPEED);
+		right_motor_set_pos(RESET_VALUE);
+		while (abs(right_motor_get_pos())<200){
+			left_motor_set_speed(POSITIVE_SPEED);
+			right_motor_set_speed(POSITIVE_SPEED);
+		}
+		//left_motor_set_speed(POSITIVE_SPEED);
+		//right_motor_set_speed(POSITIVE_SPEED);
 	}
 }
 void dont_go(void){
