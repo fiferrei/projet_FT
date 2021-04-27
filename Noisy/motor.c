@@ -4,8 +4,8 @@
 #include <motors.h>
 #include <leds.h>
 
-#define POSITIVE_SPEED		600
-#define NEGATIVE_SPEED		-600
+#define POSITIVE_SPEED		400
+#define NEGATIVE_SPEED		-400
 #define DEMI_TOUR			650
 #define	QUART_DE_TOUR		325
 #define RESET_VALUE			0
@@ -43,8 +43,8 @@ void quarter_turn_right(void){
 		right_motor_set_speed(OFF);
 		set_led(LED3, OFF);
 	}
-	left_motor_set_speed(OFF);
-	right_motor_set_speed(OFF);
+	left_motor_set_speed(POSITIVE_SPEED);
+	right_motor_set_speed(POSITIVE_SPEED);
 	right_motor_set_pos(RESET_VALUE);
 }
 
@@ -56,8 +56,8 @@ void quarter_turn_left(void){
 			left_motor_set_speed(NEGATIVE_SPEED);
 			right_motor_set_speed(POSITIVE_SPEED);
 		}
-		left_motor_set_speed(OFF);
-		right_motor_set_speed(OFF);
+		left_motor_set_speed(POSITIVE_SPEED);
+		right_motor_set_speed(POSITIVE_SPEED);
 		set_led(LED7,OFF);
 	}
 	right_motor_set_pos(RESET_VALUE);
@@ -65,13 +65,13 @@ void quarter_turn_left(void){
 
 void go_forward(void){
 	if (state_motor==ON){
-		right_motor_set_pos(RESET_VALUE);
-		while (abs(right_motor_get_pos())<200){
-			left_motor_set_speed(POSITIVE_SPEED);
-			right_motor_set_speed(POSITIVE_SPEED);
-		}
-		//left_motor_set_speed(POSITIVE_SPEED);
-		//right_motor_set_speed(POSITIVE_SPEED);
+//		right_motor_set_pos(RESET_VALUE);
+//		while (abs(right_motor_get_pos())<200){
+//			left_motor_set_speed(POSITIVE_SPEED);
+//			right_motor_set_speed(POSITIVE_SPEED);
+//		}
+		left_motor_set_speed(POSITIVE_SPEED);
+		right_motor_set_speed(POSITIVE_SPEED);
 	}
 }
 void dont_go(void){
