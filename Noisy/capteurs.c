@@ -3,6 +3,7 @@
 #include <audio/play_melody.h>
 
 static uint8_t merit=0;
+melody_t* song = NULL;
 
 void proximity(void){
 	if ((get_calibrated_prox(0)<200 || get_calibrated_prox(7)<200) &&
@@ -22,7 +23,9 @@ void proximity(void){
 	else if (get_calibrated_prox(0)<2 && get_calibrated_prox(7)<2 &&
 			get_calibrated_prox(5)<2 && get_calibrated_prox(2)<2 &&
 			get_state_motor()==1 && merit>1){
-		turn_back();
-		playMelody(1,1, NULL);
+		while (get_state_motor()==1){
+			turn_back();
+			playMelody(1,2, song);
+		}
 	}
 }
