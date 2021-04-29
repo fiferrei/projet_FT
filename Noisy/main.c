@@ -12,6 +12,8 @@
 #include <msgbus/messagebus.h>
 #include <sensors/proximity.h>
 #include <audio/microphone.h>
+#include <audio/audio_thread.h>
+#include <audio/play_melody.h>
 
 #include <capteurs.h>
 #include <audio_processing.h>
@@ -77,6 +79,8 @@ int main(void)
     proximity_start();
     //calibration
     calibrate_ir();
+    //digital analogic converter
+    dac_start();
     //start thread
     playMelodyStart();
 
@@ -101,9 +105,13 @@ int main(void)
 //    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_calibrated_prox(7));
 //    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_calibrated_prox(2));
 //    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_calibrated_prox(5));
+    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_mic_get_volume(0));
+    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_mic_get_volume(1));
+    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_mic_get_volume(2));
+    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_mic_get_volume(3));
     	proximity();
         arm_copy_f32(get_audio_buffer_ptr(LEFT_OUTPUT), send_tab, FFT_SIZE);
-        SendFloatToComputer((BaseSequentialStream *) &SD3, send_tab, FFT_SIZE);
+//      SendFloatToComputer((BaseSequentialStream *) &SD3, send_tab, FFT_SIZE);
 #else
         SendFloatToComputer((BaseSequentialStream *) &SD3, get_audio_buffer_ptr(LEFT_OUTPUT), FFT_SIZE);
 #endif  /* DOUBLE_BUFFERING */

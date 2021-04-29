@@ -24,9 +24,12 @@ void proximity(void){
 			get_calibrated_prox(5)<8 && get_calibrated_prox(2)<8 &&
 			get_state_motor()==1 && merit>1){
 		merit=0;
+		playMelody(WE_ARE_THE_CHAMPIONS, ML_FORCE_CHANGE, NULL);
 		while (get_state_motor()==1){
 			turn_back();
-			//playMelody(1,2, song);
 		}
+	}
+	else{
+		dont_go();
 	}
 }
