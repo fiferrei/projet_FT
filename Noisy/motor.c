@@ -3,6 +3,7 @@
 #include <motor.h>
 #include <motors.h>
 #include <leds.h>
+#include <capteurs.h>
 
 #define POSITIVE_SPEED		400
 #define NEGATIVE_SPEED		-400
@@ -11,8 +12,6 @@
 #define RESET_VALUE			0
 #define ON					1
 #define OFF					0
-#define LED3				1
-#define LED7				3
 
 static uint8_t state_motor=0;
 
@@ -80,12 +79,15 @@ void dont_go(void){
 }
 void stop(void){
 	state_motor=OFF;
+	set_merit(OFF);
+	set_led(LED5,ON);
 	left_motor_set_speed(OFF);
 	right_motor_set_speed(OFF);
 }
 
 void start(void){
-	state_motor=1;
+	state_motor=ON;
+	set_led(LED5,OFF);
 }
 uint8_t get_state_motor(void){
 	return state_motor;

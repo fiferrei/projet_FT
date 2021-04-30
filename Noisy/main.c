@@ -14,12 +14,15 @@
 #include <audio/microphone.h>
 #include <audio/audio_thread.h>
 #include <audio/play_melody.h>
+#include <leds.h>
 
 #include <capteurs.h>
 #include <audio_processing.h>
 #include <fft.h>
 #include <communications.h>
 #include <arm_math.h>
+
+#define ON 		1
 
 messagebus_t bus;
 MUTEX_DECL(bus_lock);
@@ -83,6 +86,8 @@ int main(void)
     dac_start();
     //start thread
     playMelodyStart();
+    //state_motor=0
+	set_led(LED5,ON);
 
     //send_tab is used to save the state of the buffer to send (double buffering)
     //to avoid modifications of the buffer while sending it
@@ -104,14 +109,14 @@ int main(void)
 //    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_calibrated_prox(0));
 //    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_calibrated_prox(7));
 //    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_calibrated_prox(2));
-//    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_calibrated_prox(5));
-    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_mic_get_volume(0));
-    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_mic_get_volume(1));
-    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_mic_get_volume(2));
-    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_mic_get_volume(3));
+//    	chprintf((BaseSequentialStream *)&SDU1, "%4d,",get_calibrated_prox(5));
+//    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", mic_get_volume(0));
+//    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", mic_get_volume(1));
+//    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", mic_get_volume(2));
+//    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", mic_get_volume(3));
     	proximity();
         arm_copy_f32(get_audio_buffer_ptr(LEFT_OUTPUT), send_tab, FFT_SIZE);
-//      SendFloatToComputer((BaseSequentialStream *) &SD3, send_tab, FFT_SIZE);
+        SendFloatToComputer((BaseSequentialStream *) &SD3, send_tab, FFT_SIZE);
 #else
         SendFloatToComputer((BaseSequentialStream *) &SD3, get_audio_buffer_ptr(LEFT_OUTPUT), FFT_SIZE);
 #endif  /* DOUBLE_BUFFERING */

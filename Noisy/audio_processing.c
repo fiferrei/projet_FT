@@ -29,24 +29,26 @@ static float micBack_output[FFT_SIZE];
 #define MIN_VALUE_THRESHOLD 10000
 
 #define MIN_FREQ 10 //we don’t analyze before this index to not use resources for nothing
-#define FREQ_FORWARD 16 //250Hz
-#define FREQ_LEFT 19 //296Hz
-#define FREQ_RIGHT 28 //359HZ
-#define FREQ_BACKWARD 25 //406Hz
-#define MAX_FREQ 30 //we don’t analyze after this index to not use resources for nothing
+#define FREQ_START_L 10
+#define FREQ_START_H 11 //250Hz
+//#define FREQ_LEFT 19 //296Hz
+//#define FREQ_RIGHT 28 //359HZ
+#define FREQ_STOP_L 54 //406Hz
+#define FREQ_STOP_H 55
+#define MAX_FREQ 60 //we don’t analyze after this index to not use resources for nothing
 
-#define FREQ_FORWARD_L (FREQ_FORWARD-1)
-#define FREQ_FORWARD_H (FREQ_FORWARD+1)
-#define FREQ_LEFT_L (FREQ_LEFT-1)
-#define FREQ_LEFT_H (FREQ_LEFT+1)
-#define FREQ_RIGHT_L (FREQ_RIGHT-1)
-#define FREQ_RIGHT_H (FREQ_RIGHT+1)
-#define FREQ_BACKWARD_L (FREQ_BACKWARD-1)
-#define FREQ_BACKWARD_H (FREQ_BACKWARD+1)
+//#define FREQ_FORWARD_L (FREQ_FORWARD-1)
+//#define FREQ_FORWARD_H (FREQ_FORWARD+1)
+//#define FREQ_LEFT_L (FREQ_LEFT-1)
+//#define FREQ_LEFT_H (FREQ_LEFT+1)
+//#define FREQ_RIGHT_L (FREQ_RIGHT-1)
+//#define FREQ_RIGHT_H (FREQ_RIGHT+1)
+//#define FREQ_BACKWARD_L (FREQ_BACKWARD-1)
+//#define FREQ_BACKWARD_H (FREQ_BACKWARD+1)
 //#define PI                  3.1415926536f
 //TO ADJUST IF NECESSARY. NOT ALL THE E-PUCK2 HAVE EXACTLY THE SAME WHEEL DISTANCE
-#define WHEEL_DISTANCE      5.35f    //cm
-#define PERIMETER_EPUCK     (PI * WHEEL_DISTANCE)
+//#define WHEEL_DISTANCE      5.35f    //cm
+//#define PERIMETER_EPUCK     (PI * WHEEL_DISTANCE)
 /*
 *	Callback called when the demodulation of the four microphones is done.
 *	We get 160 samples per mic every 10ms (16kHz)
@@ -67,7 +69,7 @@ if(data[i] > max_norm){
 	}
 	}
 	//go forward
-	if(max_norm_index >= FREQ_FORWARD_L && max_norm_index <= FREQ_FORWARD_H){
+	if(max_norm_index >= FREQ_START_L && max_norm_index <= FREQ_START_H){
 		start();
 	}
 	//turn left
@@ -81,7 +83,7 @@ if(data[i] > max_norm){
 //	right_motor_set_pos(0);
 //	}
 	//go backward
-	else if(max_norm_index >= FREQ_BACKWARD_L && max_norm_index <= FREQ_BACKWARD_H){
+	else if(max_norm_index >= FREQ_STOP_L && max_norm_index <= FREQ_STOP_H){
 		stop();
 	}
 //	else{
@@ -89,7 +91,6 @@ if(data[i] > max_norm){
 //	right_motor_set_speed(0);
 //	}
 }
-
 
 void processAudioData(int16_t *data, uint16_t num_samples){
 
@@ -155,7 +156,6 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 	*/
 
 	
-
 
 //
 //void wait_send_to_computer(void){
