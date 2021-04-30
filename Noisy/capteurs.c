@@ -5,6 +5,7 @@
 #define SIDE_OBSTACLE			40
 #define FRONT_OBSTACLE			100
 #define NO_OBSTACLE_SECURITY	15
+#define NEED_CALIBRATION		200
 #define IR1						0
 #define IR3						2
 #define IR6						5
@@ -19,6 +20,14 @@ void proximity(void){
 	if ((get_calibrated_prox(IR1)<FRONT_OBSTACLE || get_calibrated_prox(IR8)<FRONT_OBSTACLE) &&
 		(get_calibrated_prox(IR6)>SIDE_OBSTACLE || get_calibrated_prox(IR3)>SIDE_OBSTACLE)){
 		go_forward();
+		if((get_calibrated_prox(IR6)-get_calibrated_prox(IR3)>NEED_CALIBRATION) &&
+			get_calibrated_prox(3)>NO_OBSTACLE_SECURITY){
+			calibrate_pos_left();
+		}
+		else if((get_calibrated_prox(IR3)-get_calibrated_prox(IR6)>NEED_CALIBRATION) &&
+				get_calibrated_prox(6)>NO_OBSTACLE_SECURITY){
+			calibrate_pos_right();
+		}
 	}
 	// if obstacle front, obstacle left and no obstacle right turn right
 	else if((get_calibrated_prox(IR1)>FRONT_OBSTACLE || get_calibrated_prox(IR8)>FRONT_OBSTACLE) &&
@@ -37,9 +46,9 @@ void proximity(void){
 			get_calibrated_prox(IR6)<NO_OBSTACLE_SECURITY && get_calibrated_prox(3)<NO_OBSTACLE_SECURITY &&
 			get_state_motor()==ON && merit>=MERIT){
 		merit=0;
+		turn();
 		while (get_state_motor()==ON){
 			playMelody(SEVEN_NATION_ARMY, ML_SIMPLE_PLAY, NULL);
-			turn_back();
 		}
 		stopCurrentMelody();
 	}

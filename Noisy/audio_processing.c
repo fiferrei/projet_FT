@@ -59,14 +59,14 @@ static float micBack_output[FFT_SIZE];
 *	uint16_t num_samples	Tells how many data we get in total (should always be 640)
 */
 void sound_remote(float* data){
-float max_norm = MIN_VALUE_THRESHOLD;
-int16_t max_norm_index = -1;
-//search for the highest peak
-for(uint16_t i = MIN_FREQ ; i <= MAX_FREQ ; i++){
-if(data[i] > max_norm){
-	max_norm = data[i];
-	max_norm_index = i;
-	}
+	float max_norm = MIN_VALUE_THRESHOLD;
+	int16_t max_norm_index = -1;
+	//search for the highest peak
+	for(uint16_t i = MIN_FREQ ; i <= MAX_FREQ ; i++){
+		if(data[i] > max_norm){
+			max_norm = data[i];
+			max_norm_index = i;
+		}
 	}
 	//go forward
 	if(max_norm_index >= FREQ_START_L && max_norm_index <= FREQ_START_H){
