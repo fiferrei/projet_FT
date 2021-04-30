@@ -64,11 +64,6 @@ void quarter_turn_left(void){
 
 void go_forward(void){
 	if (state_motor==ON){
-//		right_motor_set_pos(RESET_VALUE);
-//		while (abs(right_motor_get_pos())<200){
-//			left_motor_set_speed(POSITIVE_SPEED);
-//			right_motor_set_speed(POSITIVE_SPEED);
-//		}
 		left_motor_set_speed(POSITIVE_SPEED);
 		right_motor_set_speed(POSITIVE_SPEED);
 	}
@@ -80,6 +75,7 @@ void dont_go(void){
 void stop(void){
 	state_motor=OFF;
 	set_merit(OFF);
+	set_front_led(OFF);
 	set_led(LED5,ON);
 	left_motor_set_speed(OFF);
 	right_motor_set_speed(OFF);
@@ -87,6 +83,7 @@ void stop(void){
 
 void start(void){
 	state_motor=ON;
+	set_front_led(ON);
 	set_led(LED5,OFF);
 }
 uint8_t get_state_motor(void){

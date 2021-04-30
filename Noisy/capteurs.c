@@ -2,31 +2,42 @@
 #include <motor.h>
 #include <audio/play_melody.h>
 
-#define SIDE_OBSTACLE		50
-#define FRONT_OBSTACLE		100
+#define SIDE_OBSTACLE			40
+#define FRONT_OBSTACLE			100
+#define NO_OBSTACLE_SECURITY	15
+#define IR1						0
+#define IR3						2
+#define IR6						5
+#define IR8						7
+#define ON						1
+#define MERIT					2
+
 static uint8_t merit=0;
-melody_t* song = NULL;
 
 void proximity(void){
-	if ((get_calibrated_prox(0)<FRONT_OBSTACLE || get_calibrated_prox(7)<FRONT_OBSTACLE) &&
-		(get_calibrated_prox(5)>SIDE_OBSTACLE || get_calibrated_prox(2)>SIDE_OBSTACLE)){
+	//if no obstacle front and obstacle in at least one side of the robot go forward
+	if ((get_calibrated_prox(IR1)<FRONT_OBSTACLE || get_calibrated_prox(IR8)<FRONT_OBSTACLE) &&
+		(get_calibrated_prox(IR6)>SIDE_OBSTACLE || get_calibrated_prox(IR3)>SIDE_OBSTACLE)){
 		go_forward();
 	}
-	else if((get_calibrated_prox(0)>FRONT_OBSTACLE || get_calibrated_prox(7)>FRONT_OBSTACLE) &&
-			get_calibrated_prox(6)>SIDE_OBSTACLE && get_calibrated_prox(3)<SIDE_OBSTACLE){
+	// if obstacle front, obstacle left and no obstacle right turn right
+	else if((get_calibrated_prox(IR1)>FRONT_OBSTACLE || get_calibrated_prox(IR8)>FRONT_OBSTACLE) &&
+			get_calibrated_prox(IR6)>SIDE_OBSTACLE && get_calibrated_prox(IR3)<SIDE_OBSTACLE){
 		quarter_turn_right();
 		merit++;
 	}
-	else if ((get_calibrated_prox(0)>FRONT_OBSTACLE || get_calibrated_prox(7)>FRONT_OBSTACLE) &&
-			get_calibrated_prox(5)<SIDE_OBSTACLE && get_calibrated_prox(2)>SIDE_OBSTACLE){
+	//if obstacle front, obstacle right and no obstacle left turn left
+	else if ((get_calibrated_prox(IR1)>FRONT_OBSTACLE || get_calibrated_prox(IR8)>FRONT_OBSTACLE) &&
+			get_calibrated_prox(IR6)<SIDE_OBSTACLE && get_calibrated_prox(IR3)>SIDE_OBSTACLE){
 		quarter_turn_left();
 		merit++;
 	}
-	else if (get_calibrated_prox(0)<8 && get_calibrated_prox(7)<8 &&
-			get_calibrated_prox(5)<8 && get_calibrated_prox(2)<8 &&
-			get_state_motor()==1 && merit>1){
+	//if no obstacle around, motor is on and the robots merits celebrate
+	else if (get_calibrated_prox(IR1)<NO_OBSTACLE_SECURITY && get_calibrated_prox(IR8)<NO_OBSTACLE_SECURITY &&
+			get_calibrated_prox(IR6)<NO_OBSTACLE_SECURITY && get_calibrated_prox(3)<NO_OBSTACLE_SECURITY &&
+			get_state_motor()==ON && merit>=MERIT){
 		merit=0;
-		while (get_state_motor()==1){
+		while (get_state_motor()==ON){
 			playMelody(SEVEN_NATION_ARMY, ML_SIMPLE_PLAY, NULL);
 			turn_back();
 		}

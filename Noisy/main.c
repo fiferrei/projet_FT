@@ -14,7 +14,6 @@
 #include <audio/microphone.h>
 #include <audio/audio_thread.h>
 #include <audio/play_melody.h>
-#include <leds.h>
 
 #include <capteurs.h>
 #include <audio_processing.h>
@@ -86,8 +85,6 @@ int main(void)
     dac_start();
     //start thread
     playMelodyStart();
-    //state_motor=0
-	set_led(LED5,ON);
 
     //send_tab is used to save the state of the buffer to send (double buffering)
     //to avoid modifications of the buffer while sending it
