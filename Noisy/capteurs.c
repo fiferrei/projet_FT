@@ -4,8 +4,8 @@
 #include <leds.h>
 
 #define SIDE_OBSTACLE			40
-#define FRONT_OBSTACLE			80
-#define NO_OBSTACLE_SECURITY	25
+#define FRONT_OBSTACLE			100
+#define NO_OBSTACLE_SECURITY	20
 #define NEED_CALIBRATION		200
 #define FRONT_SECURITY			20
 #define IR1						0
