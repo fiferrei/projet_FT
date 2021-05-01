@@ -4,9 +4,10 @@
 #include <leds.h>
 
 #define SIDE_OBSTACLE			40
-#define FRONT_OBSTACLE			100
+#define FRONT_OBSTACLE			80
 #define NO_OBSTACLE_SECURITY	25
 #define NEED_CALIBRATION		200
+#define FRONT_SECURITY			20
 #define IR1						0
 #define IR3						2
 #define IR6						5
@@ -34,10 +35,13 @@ void proximity(void){
 	//if no obstacle front and obstacle in at least one side of the robot go forward
 	else if ((get_calibrated_prox(IR1)<FRONT_OBSTACLE || get_calibrated_prox(IR8)<FRONT_OBSTACLE) &&
 		(get_calibrated_prox(IR6)>SIDE_OBSTACLE || get_calibrated_prox(IR3)>SIDE_OBSTACLE)){
-		if((get_calibrated_prox(IR6)-get_calibrated_prox(IR3))>NEED_CALIBRATION){
+
+		if((get_calibrated_prox(IR6)-get_calibrated_prox(IR3))>NEED_CALIBRATION &&
+		    (get_calibrated_prox(IR1)<FRONT_SECURITY && get_calibrated_prox(IR8)<FRONT_SECURITY)){
 			calibrate_pos_left();
 		}
-		else if((get_calibrated_prox(IR3)-get_calibrated_prox(IR6))>NEED_CALIBRATION){
+		else if((get_calibrated_prox(IR3)-get_calibrated_prox(IR6))>NEED_CALIBRATION &&
+			     (get_calibrated_prox(IR1)<FRONT_SECURITY && get_calibrated_prox(IR8)<FRONT_SECURITY)){
 			calibrate_pos_right();
 		}
 		else{
