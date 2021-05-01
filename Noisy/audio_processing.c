@@ -29,13 +29,13 @@ static float micBack_output[FFT_SIZE];
 #define MIN_VALUE_THRESHOLD 10000
 
 #define MIN_FREQ 10 //we don’t analyze before this index to not use resources for nothing
-#define FREQ_START_L 10
-#define FREQ_START_H 11 //250Hz
+#define FREQ_START_L 11 //172Hz
+#define FREQ_START_H 12 //187Hz
 //#define FREQ_LEFT 19 //296Hz
 //#define FREQ_RIGHT 28 //359HZ
-#define FREQ_STOP_L 58 //406Hz
-#define FREQ_STOP_H 59
-#define MAX_FREQ 60 //we don’t analyze after this index to not use resources for nothing
+#define FREQ_STOP_L 65 //1016Hz
+#define FREQ_STOP_H 66 //1031Hz
+#define MAX_FREQ 70 //we don’t analyze after this index to not use resources for nothing
 
 //#define FREQ_FORWARD_L (FREQ_FORWARD-1)
 //#define FREQ_FORWARD_H (FREQ_FORWARD+1)
@@ -73,9 +73,9 @@ void sound_remote(float* data){
 		start();
 	}
 	//turn left
-	//else if(max_norm_index >= FREQ_RIGHT && max_norm_index <= FREQ_RIGHT_H){
-		//turn_back();
-	//}
+//	else if(max_norm_index >= FREQ_RIGHT && max_norm_index <= FREQ_RIGHT_H){
+//		calibrate_pos_right();//test
+//	}
 //	//turn right
 //	else if(max_norm_index >= FREQ_RIGHT_L && max_norm_index <= FREQ_RIGHT_H){
 //	left_motor_set_speed(600);
