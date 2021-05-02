@@ -76,7 +76,7 @@ void go_forward(void){
 	}
 }
 
-
+//the robot is to close to the wall, it goes a little to the right
 void calibrate_pos_right(void){
 	if (state_motor==ON){
 		set_led(LED3, ON);
@@ -97,6 +97,7 @@ void calibrate_pos_right(void){
 	}
 }
 
+//the robot is to close to the wall, it goes a little to the left
 void calibrate_pos_left(void){
 	if (state_motor==ON){
 		set_led(LED7, ON);
@@ -117,6 +118,7 @@ void calibrate_pos_left(void){
 	}
 }
 
+//the robot doesn't move
 void dont_go(void){
 	left_motor_set_speed(OFF);
 	right_motor_set_speed(OFF);

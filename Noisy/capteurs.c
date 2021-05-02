@@ -36,10 +36,12 @@ void proximity(void){
 	else if ((get_calibrated_prox(IR1)<FRONT_OBSTACLE || get_calibrated_prox(IR8)<FRONT_OBSTACLE) &&
 		(get_calibrated_prox(IR6)>SIDE_OBSTACLE || get_calibrated_prox(IR3)>SIDE_OBSTACLE)){
 
+		//if the robot goes to close to the right wall, it goes a little to the left
 		if((get_calibrated_prox(IR6)-get_calibrated_prox(IR3))>NEED_CALIBRATION &&
 		    (get_calibrated_prox(IR1)<FRONT_SECURITY && get_calibrated_prox(IR8)<FRONT_SECURITY)){
 			calibrate_pos_left();
 		}
+		//if the robot goes to close to the left wall, it goes a little to the right
 		else if((get_calibrated_prox(IR3)-get_calibrated_prox(IR6))>NEED_CALIBRATION &&
 			     (get_calibrated_prox(IR1)<FRONT_SECURITY && get_calibrated_prox(IR8)<FRONT_SECURITY)){
 			calibrate_pos_right();
@@ -49,7 +51,7 @@ void proximity(void){
 		}
 	}
 
-	//if no obstacle around, motor is on and the robots merits celebrate
+	//if no obstacle around, motor is on and the robots merits celebrate also the robot celebrates
 	else if ((get_calibrated_prox(IR1)<NO_OBSTACLE_SECURITY || get_calibrated_prox(IR8)<NO_OBSTACLE_SECURITY) &&
 			get_calibrated_prox(IR6)<NO_OBSTACLE_SECURITY && get_calibrated_prox(3)<NO_OBSTACLE_SECURITY &&
 			get_state_motor()==ON && merit>=MERIT){
