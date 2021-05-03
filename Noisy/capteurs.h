@@ -3,5 +3,5 @@
 
 
 void proximity(void);
-void set_merit(uint8_t off);
+
 #endif

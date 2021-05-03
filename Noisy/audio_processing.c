@@ -68,7 +68,7 @@ void sound_remote(float* data){
 			max_norm_index = i;
 		}
 	}
-	//go forward
+	//allow the robot to move
 	if(max_norm_index >= FREQ_START_L && max_norm_index <= FREQ_START_H){
 		start();
 	}
@@ -82,7 +82,7 @@ void sound_remote(float* data){
 //	right_motor_set_speed(-600);
 //	right_motor_set_pos(0);
 //	}
-	//go backward
+	//withdraw the permission to move
 	else if(max_norm_index >= FREQ_STOP_L && max_norm_index <= FREQ_STOP_H){
 		stop();
 	}

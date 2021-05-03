@@ -12,6 +12,7 @@
 #define REDRESS_STEP		150
 #define DEMI_TOUR			650
 #define	QUART_DE_TOUR		325
+#define FINISH_CORNER		450
 #define RESET_VALUE			0
 #define ON					1
 #define OFF					0
@@ -34,6 +35,22 @@ void turn (void){
 	right_motor_set_pos(RESET_VALUE);
 }
 
+//the robot turns back
+void turn_back (void){
+	if (state_motor==ON){
+		set_body_led(ON);
+		right_motor_set_pos(RESET_VALUE);
+		while (abs(right_motor_get_pos())<DEMI_TOUR){
+			left_motor_set_speed(NEGATIVE_SPEED);
+			right_motor_set_speed(POSITIVE_SPEED);
+		}
+		left_motor_set_speed(OFF);
+		right_motor_set_speed(OFF);
+		set_body_led(OFF);
+	}
+	right_motor_set_pos(RESET_VALUE);
+}
+
 //the robot turns right
 void quarter_turn_right(void){
 	if(state_motor==ON){
@@ -43,12 +60,13 @@ void quarter_turn_right(void){
 			left_motor_set_speed(POSITIVE_SPEED);
 			right_motor_set_speed(NEGATIVE_SPEED);
 		}
-		left_motor_set_speed(OFF);
-		right_motor_set_speed(OFF);
+		right_motor_set_pos(RESET_VALUE);
+		while (abs(right_motor_get_pos())<FINISH_CORNER){
+			left_motor_set_speed(POSITIVE_SPEED);
+			right_motor_set_speed(POSITIVE_SPEED);
+		}
 		set_led(LED3, OFF);
 	}
-	left_motor_set_speed(POSITIVE_SPEED);
-	right_motor_set_speed(POSITIVE_SPEED);
 	right_motor_set_pos(RESET_VALUE);
 }
 
@@ -61,8 +79,11 @@ void quarter_turn_left(void){
 			left_motor_set_speed(NEGATIVE_SPEED);
 			right_motor_set_speed(POSITIVE_SPEED);
 		}
-		left_motor_set_speed(POSITIVE_SPEED);
-		right_motor_set_speed(POSITIVE_SPEED);
+		right_motor_set_pos(RESET_VALUE);
+		while (abs(right_motor_get_pos())<FINISH_CORNER){
+			left_motor_set_speed(POSITIVE_SPEED);
+			right_motor_set_speed(POSITIVE_SPEED);
+		}
 		set_led(LED7,OFF);
 	}
 	right_motor_set_pos(RESET_VALUE);
@@ -127,7 +148,6 @@ void dont_go(void){
 //the robot can't move anymore
 void stop(void){
 	state_motor=OFF;
-	set_merit(OFF);
 	set_front_led(OFF);
 	set_body_led(OFF);
 	set_led(LED5,ON);

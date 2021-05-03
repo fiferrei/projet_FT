@@ -2,6 +2,7 @@
 #define MOTOR_H
 
 void turn(void);
+void turn_back(void);
 void quarter_turn_right(void);
 void quarter_turn_left(void);
 void go_forward(void);

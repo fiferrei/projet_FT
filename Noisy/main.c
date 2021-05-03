@@ -14,6 +14,7 @@
 #include <audio/microphone.h>
 #include <audio/audio_thread.h>
 #include <audio/play_melody.h>
+#include <leds.h>
 
 #include <capteurs.h>
 #include <audio_processing.h>
