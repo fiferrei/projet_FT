@@ -12,6 +12,6 @@ void stop(void);
 void start(void);
 void dont_go(void);
 uint8_t get_state_motor(void);
-//void set_state_motor(uint8_t motor);
+void celebrate(void);
 
 #endif /* MOTOR_H */

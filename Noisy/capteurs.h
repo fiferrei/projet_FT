@@ -4,4 +4,4 @@
 
 void proximity(void);
 
-#endif
+#endif /* CAPTEURS_H */

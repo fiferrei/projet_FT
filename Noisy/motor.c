@@ -4,6 +4,7 @@
 #include <motors.h>
 #include <leds.h>
 #include <capteurs.h>
+#include <audio/play_melody.h>
 
 #define POSITIVE_SPEED		400
 #define NEGATIVE_SPEED		-400
@@ -23,14 +24,8 @@ static uint8_t state_motor=0;
 void turn (void){
 	if (state_motor==ON){
 		set_body_led(ON);
-		//right_motor_set_pos(RESET_VALUE);
-		//while (abs(right_motor_get_pos())<DEMI_TOUR){
 		left_motor_set_speed(NEGATIVE_SPEED);
 		right_motor_set_speed(POSITIVE_SPEED);
-
-		//left_motor_set_speed(OFF);
-		//right_motor_set_speed(OFF);
-		//set_body_led(OFF);
 	}
 	right_motor_set_pos(RESET_VALUE);
 }
@@ -166,10 +161,16 @@ void start(void){
 uint8_t get_state_motor(void){
 	return state_motor;
 }
-//
-//void set_state_motor(uint8_t motor){
-//	state_motor=motor;
-//}
+
+//celebrate at the end of the labyrinth
+void celebrate(void){
+	turn();
+	while (get_state_motor()==SET){
+		playMelody(SEVEN_NATION_ARMY, ML_SIMPLE_PLAY, NULL);
+	}
+	stopCurrentMelody();
+}
+
 
 
 

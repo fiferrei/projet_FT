@@ -6,21 +6,26 @@
 #include <leds.h>
 #include <motors.h>
 
-#define SIDE_OBSTACLE			25
+#define SIDE_OBSTACLE			5
 #define FRONT_OBSTACLE			100
-#define NO_OBSTACLE_SECURITY	20
-#define NEED_CALIBRATION		75
+#define NO_OBSTACLE_SECURITY	5
+#define NEED_CALIBRATION		40
 #define FRONT_SECURITY			5
 #define RESET					0
 #define SET						1
 #define IR1						0
+#define IR2						1
 #define IR3						2
+#define IR4						3
+#define IR5						4
 #define IR6						5
+#define IR7						6
 #define IR8						7
 #define MERIT					2
 
 static uint8_t impasse=0;
 static uint8_t virage=0;
+static uint8_t redress=0;
 
 void proximity(void){
 	// if obstacle front, obstacle left and no obstacle right turn right
@@ -43,14 +48,17 @@ void proximity(void){
 		if((get_calibrated_prox(IR6)-get_calibrated_prox(IR3))>NEED_CALIBRATION &&
 		   (get_calibrated_prox(IR1)<FRONT_SECURITY && get_calibrated_prox(IR8)<FRONT_SECURITY)){
 			calibrate_pos_left();
+			redress=SET;
 		}
 		//if the robot goes to close to the left wall, it goes a little to the right
 		else if((get_calibrated_prox(IR3)-get_calibrated_prox(IR6))>NEED_CALIBRATION &&
 			    (get_calibrated_prox(IR1)<FRONT_SECURITY && get_calibrated_prox(IR8)<FRONT_SECURITY)){
 			calibrate_pos_right();
+			redress=SET;
 		}
 		else{
 			go_forward();
+			redress=RESET;
 		}
 	}
 
@@ -61,93 +69,79 @@ void proximity(void){
 		turn_back();
 	}
 
-	//croisement sans obstacle devant et à gauche 1ère tentative
+	//détecte un croisement
 	else if ((get_calibrated_prox(IR1)<FRONT_SECURITY || get_calibrated_prox(IR8)<FRONT_SECURITY) &&
-			  get_calibrated_prox(IR6)<SIDE_OBSTACLE && get_calibrated_prox(IR3)>SIDE_OBSTACLE && impasse==RESET){
-		playNote(440, 250);
-		virage=RESET;
-		go_forward();
-	}
-
-	//croisement sans obstacle devant et à gauche 2ème tentative
-	else if ((get_calibrated_prox(IR1)<FRONT_SECURITY || get_calibrated_prox(IR8)<FRONT_SECURITY) &&
-			  get_calibrated_prox(IR6)>SIDE_OBSTACLE && get_calibrated_prox(IR3)<SIDE_OBSTACLE && impasse==SET){
+			  (get_calibrated_prox(IR6)<SIDE_OBSTACLE || get_calibrated_prox(IR3)<SIDE_OBSTACLE)){
+		//go to the middle of the crossing
 		right_motor_set_pos(RESET);
-		while (abs(right_motor_get_pos())<300){
+		while (abs(right_motor_get_pos())<400){
 			go_forward();
 		}
-		playNote(440, 250);
-		virage=RESET;
-		impasse=RESET;
-		quarter_turn_right();
-	}
 
-	//croisement sans obstacle devant et à droite 1ère tentative
-	else if ((get_calibrated_prox(IR1)<FRONT_OBSTACLE || get_calibrated_prox(IR8)<FRONT_OBSTACLE) &&
-			  get_calibrated_prox(IR6)>SIDE_OBSTACLE && get_calibrated_prox(IR3)<SIDE_OBSTACLE && impasse==RESET){
-		playNote(440, 250);
-		virage=RESET;
-		go_forward();
-	}
+		//if no obstacle around all the robot celebrate
+		if (get_calibrated_prox(IR1)==RESET && get_calibrated_prox(IR2)==RESET && get_calibrated_prox(IR3)==RESET &&
+			get_calibrated_prox(IR4)==RESET && get_calibrated_prox(IR5)==RESET && get_calibrated_prox(IR6)==RESET &&
+			get_calibrated_prox(IR7)==RESET && get_calibrated_prox(IR8)==RESET){
+			celebrate();
+		}
 
-	//croisement sans obstacle devant et à droite 2ème tentative
-	else if ((get_calibrated_prox(IR1)<FRONT_OBSTACLE || get_calibrated_prox(IR8)<FRONT_OBSTACLE) &&
-			  get_calibrated_prox(IR6)<SIDE_OBSTACLE && get_calibrated_prox(IR3)>SIDE_OBSTACLE && impasse==SET){
-		right_motor_set_pos(RESET);
-			while (abs(right_motor_get_pos())<300){
+		//croisement sans obstacle devant et à gauche 1ère tentative
+		else if ((get_calibrated_prox(IR1)<FRONT_SECURITY || get_calibrated_prox(IR8)<FRONT_SECURITY) &&
+			      get_calibrated_prox(IR6)<SIDE_OBSTACLE && get_calibrated_prox(IR3)>SIDE_OBSTACLE && impasse==RESET){
+			playNote(440, 250);
+			virage=RESET;
 			go_forward();
 		}
-		playNote(440, 250);
-		virage=RESET;
-		impasse=RESET;
-		quarter_turn_left();
-	}
 
-	//croisement sans obstacle devant, à gauche et à droite 1ère tentative
-	else if ((get_calibrated_prox(IR1)<FRONT_OBSTACLE || get_calibrated_prox(IR8)<FRONT_OBSTACLE) &&
-			  get_calibrated_prox(IR6)<SIDE_OBSTACLE && get_calibrated_prox(IR3)<SIDE_OBSTACLE && impasse==RESET){
-		playNote(440, 250);
-		virage=RESET;
-		go_forward();
-	}
+		//croisement sans obstacle devant et à gauche 2ème tentative
+		else if ((get_calibrated_prox(IR1)<FRONT_SECURITY || get_calibrated_prox(IR8)<FRONT_SECURITY) &&
+				  get_calibrated_prox(IR6)>SIDE_OBSTACLE && get_calibrated_prox(IR3)<SIDE_OBSTACLE && impasse==SET){
+			playNote(440, 250);
+			virage=RESET;
+			impasse=RESET;
+			quarter_turn_right();
+		}
 
-	//croisement sans obstacle devant, à gauche et à droite 2ème tentative
-	else if ((get_calibrated_prox(IR1)<FRONT_OBSTACLE || get_calibrated_prox(IR8)<FRONT_OBSTACLE) &&
-			  get_calibrated_prox(IR6)<SIDE_OBSTACLE && get_calibrated_prox(IR3)<SIDE_OBSTACLE && impasse==SET && virage==RESET){
-		virage=SET;
-		impasse=RESET;
-		right_motor_set_pos(RESET);
-			while (abs(right_motor_get_pos())<300){
+		//croisement sans obstacle devant et à droite 1ère tentative
+		else if ((get_calibrated_prox(IR1)<FRONT_OBSTACLE || get_calibrated_prox(IR8)<FRONT_OBSTACLE) &&
+				  get_calibrated_prox(IR6)>SIDE_OBSTACLE && get_calibrated_prox(IR3)<SIDE_OBSTACLE && impasse==RESET){
+			playNote(440, 250);
+			virage=RESET;
 			go_forward();
 		}
-		playNote(440, 250);
-		quarter_turn_left();
-	}
 
-	//croisement sans obstacle devant, à gauche et à droite 3ème tentative
-	else if ((get_calibrated_prox(IR1)<FRONT_OBSTACLE || get_calibrated_prox(IR8)<FRONT_OBSTACLE) &&
-			  get_calibrated_prox(IR6)<SIDE_OBSTACLE && get_calibrated_prox(IR3)<SIDE_OBSTACLE && impasse==SET && virage==SET){
-		virage=RESET;
-		impasse=RESET;
-		right_motor_set_pos(RESET);
-			while (abs(right_motor_get_pos())<300){
+		//croisement sans obstacle devant et à droite 2ème tentative
+		else if ((get_calibrated_prox(IR1)<FRONT_OBSTACLE || get_calibrated_prox(IR8)<FRONT_OBSTACLE) &&
+				  get_calibrated_prox(IR6)<SIDE_OBSTACLE && get_calibrated_prox(IR3)>SIDE_OBSTACLE && impasse==SET){
+			playNote(440, 250);
+			virage=RESET;
+			impasse=RESET;
+			quarter_turn_left();
+		}
+
+		//croisement sans obstacle devant, à gauche et à droite 1ère tentative
+		else if ((get_calibrated_prox(IR1)<FRONT_OBSTACLE || get_calibrated_prox(IR8)<FRONT_OBSTACLE) &&
+				  get_calibrated_prox(IR6)<SIDE_OBSTACLE && get_calibrated_prox(IR3)<SIDE_OBSTACLE && impasse==RESET){
+			playNote(440, 250);
+			virage=RESET;
 			go_forward();
 		}
-		playNote(440, 250);
-		go_forward();
+
+		//croisement sans obstacle devant, à gauche et à droite 2ème tentative
+		else if ((get_calibrated_prox(IR1)<FRONT_OBSTACLE || get_calibrated_prox(IR8)<FRONT_OBSTACLE) &&
+				  get_calibrated_prox(IR6)<SIDE_OBSTACLE && get_calibrated_prox(IR3)<SIDE_OBSTACLE && impasse==SET && virage==RESET){
+			virage=SET;
+			playNote(440, 250);
+			quarter_turn_left();
+		}
+
+		//croisement sans obstacle devant, à gauche et à droite 3ème tentative
+		else if ((get_calibrated_prox(IR1)<FRONT_OBSTACLE || get_calibrated_prox(IR8)<FRONT_OBSTACLE) &&
+				  get_calibrated_prox(IR6)<SIDE_OBSTACLE && get_calibrated_prox(IR3)<SIDE_OBSTACLE && impasse==SET && virage==SET){
+			virage=RESET;
+			impasse=RESET;
+			playNote(440, 250);
+			go_forward();
+		}
 	}
-//	//if no obstacle around, motor is on and the robots merits celebrate also the robot celebrates
-//	else if ((get_calibrated_prox(IR1)<NO_OBSTACLE_SECURITY || get_calibrated_prox(IR8)<NO_OBSTACLE_SECURITY) &&
-//			get_calibrated_prox(IR6)<NO_OBSTACLE_SECURITY && get_calibrated_prox(3)<NO_OBSTACLE_SECURITY &&
-//			get_state_motor()==ON && merit>=MERIT){
-//		merit=0;
-//		turn();
-//		while (get_state_motor()==ON){
-//			playMelody(SEVEN_NATION_ARMY, ML_SIMPLE_PLAY, NULL);
-//		}
-//		stopCurrentMelody();
-//	}
-//	else{
-//		dont_go();
-//	}
 }

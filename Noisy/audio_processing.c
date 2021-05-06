@@ -9,6 +9,7 @@
 #include <audio/microphone.h>
 #include <audio_processing.h>
 #include <communications.h>
+//#include <audio/play_melody.h>
 #include <fft.h>
 #include <arm_math.h>
 
@@ -28,27 +29,14 @@ static float micBack_output[FFT_SIZE];
 
 #define MIN_VALUE_THRESHOLD 10000
 
-#define MIN_FREQ 10 //we don’t analyze before this index to not use resources for nothing
-#define FREQ_START_L 11 //172Hz
-#define FREQ_START_H 12 //187Hz
-//#define FREQ_LEFT 19 //296Hz
-//#define FREQ_RIGHT 28 //359HZ
-#define FREQ_STOP_L 65 //1016Hz
-#define FREQ_STOP_H 66 //1031Hz
-#define MAX_FREQ 70 //we don’t analyze after this index to not use resources for nothing
+#define MIN_FREQ 			10 //we don’t analyze before this index to not use resources for nothing
+#define FREQ_START_L 		11 //172Hz
+#define FREQ_START_H 		12 //187Hz
+#define FREQ_STOP_L 		65 //1016Hz
+#define FREQ_STOP_H 		66 //1031Hz
+#define MAX_FREQ 			70 //we don’t analyze after this index to not use resources for nothing
+#define ON					1
 
-//#define FREQ_FORWARD_L (FREQ_FORWARD-1)
-//#define FREQ_FORWARD_H (FREQ_FORWARD+1)
-//#define FREQ_LEFT_L (FREQ_LEFT-1)
-//#define FREQ_LEFT_H (FREQ_LEFT+1)
-//#define FREQ_RIGHT_L (FREQ_RIGHT-1)
-//#define FREQ_RIGHT_H (FREQ_RIGHT+1)
-//#define FREQ_BACKWARD_L (FREQ_BACKWARD-1)
-//#define FREQ_BACKWARD_H (FREQ_BACKWARD+1)
-//#define PI                  3.1415926536f
-//TO ADJUST IF NECESSARY. NOT ALL THE E-PUCK2 HAVE EXACTLY THE SAME WHEEL DISTANCE
-//#define WHEEL_DISTANCE      5.35f    //cm
-//#define PERIMETER_EPUCK     (PI * WHEEL_DISTANCE)
 /*
 *	Callback called when the demodulation of the four microphones is done.
 *	We get 160 samples per mic every 10ms (16kHz)
@@ -72,79 +60,49 @@ void sound_remote(float* data){
 	if(max_norm_index >= FREQ_START_L && max_norm_index <= FREQ_START_H){
 		start();
 	}
-	//turn left
-//	else if(max_norm_index >= FREQ_RIGHT && max_norm_index <= FREQ_RIGHT_H){
-//		calibrate_pos_right();//test
-//	}
-//	//turn right
-//	else if(max_norm_index >= FREQ_RIGHT_L && max_norm_index <= FREQ_RIGHT_H){
-//	left_motor_set_speed(600);
-//	right_motor_set_speed(-600);
-//	right_motor_set_pos(0);
-//	}
 	//withdraw the permission to move
 	else if(max_norm_index >= FREQ_STOP_L && max_norm_index <= FREQ_STOP_H){
 		stop();
 	}
-//	else{
-//	left_motor_set_speed(0);
-//	right_motor_set_speed(0);
-//	}
 }
 
 void processAudioData(int16_t *data, uint16_t num_samples){
 
 	static uint16_t nb_samples = 0;
-//	static uint8_t mustSend = 0;
 	//loop to fill the buffers
 	for(uint16_t i = 0 ; i < num_samples ; i+=4){
-	//construct an array of complex numbers. Put 0 to the imaginary part
-//	micRight_cmplx_input[nb_samples] = (float)data[i + MIC_RIGHT];
-	micLeft_cmplx_input[nb_samples] = (float)data[i + MIC_LEFT];
-//	micBack_cmplx_input[nb_samples] = (float)data[i + MIC_BACK];
-//	micFront_cmplx_input[nb_samples] = (float)data[i + MIC_FRONT];
-	nb_samples++;
-//	micRight_cmplx_input[nb_samples] = 0;
-	micLeft_cmplx_input[nb_samples] = 0;
-//	micBack_cmplx_input[nb_samples] = 0;
-//	micFront_cmplx_input[nb_samples] = 0;
-	nb_samples++;
-	//stop when buffer is full
-	if(nb_samples >= (2 * FFT_SIZE)){
-	break;
-	}
+		//construct an array of complex numbers. Put 0 to the imaginary part
+//		micRight_cmplx_input[nb_samples] = (float)data[i + MIC_RIGHT];
+		micLeft_cmplx_input[nb_samples] = (float)data[i + MIC_LEFT];
+		nb_samples++;
+//		micRight_cmplx_input[nb_samples] = 0;
+		micLeft_cmplx_input[nb_samples] = 0;
+		nb_samples++;
+		//stop when buffer is full
+		if(nb_samples >= (2 * FFT_SIZE)){
+			break;
+		}
 	}
 	if(nb_samples >= (2 * FFT_SIZE)){
-	/* FFT proccessing
-	*
-	* This FFT function stores the results in the input buffer given.
-	* This is an "In Place" function.
-	*/
-//	doFFT_optimized(FFT_SIZE, micRight_cmplx_input);
-	doFFT_optimized(FFT_SIZE, micLeft_cmplx_input);
-//	doFFT_optimized(FFT_SIZE, micFront_cmplx_input);
-//	doFFT_optimized(FFT_SIZE, micBack_cmplx_input);
-	/* Magnitude processing
-	*
-	* Computes the magnitude of the complex numbers and
-	* stores them in a buffer of FFT_SIZE because it only contains
-	* real numbers.
-	*
-	*/
-//	arm_cmplx_mag_f32(micRight_cmplx_input, micRight_output, FFT_SIZE);
-	arm_cmplx_mag_f32(micLeft_cmplx_input, micLeft_output, FFT_SIZE);
-//	arm_cmplx_mag_f32(micFront_cmplx_input, micFront_output, FFT_SIZE);
-//	arm_cmplx_mag_f32(micBack_cmplx_input, micBack_output, FFT_SIZE);
-	//sends only one FFT result over 10 for 1 mic to not flood the computer
-	//sends to UART3
-//	if(mustSend > 8){
-//	//signals to send the result to the computer
-//	chBSemSignal(&sendToComputer_sem);
-//	mustSend = 0;
-//	}
-	nb_samples = 0;
-//	mustSend++;
-	sound_remote(micLeft_output);
+		/* FFT proccessing
+	 	*
+		* This FFT function stores the results in the input buffer given.
+		* This is an "In Place" function.
+		*/
+//		doFFT_optimized(FFT_SIZE, micRight_cmplx_input);
+		doFFT_optimized(FFT_SIZE, micLeft_cmplx_input);
+		/* Magnitude processing
+		*
+		* Computes the magnitude of the complex numbers and
+		* stores them in a buffer of FFT_SIZE because it only contains
+		* real numbers.
+		*
+		*/
+//		arm_cmplx_mag_f32(micRight_cmplx_input, micRight_output, FFT_SIZE);
+		arm_cmplx_mag_f32(micLeft_cmplx_input, micLeft_output, FFT_SIZE);
+		//sends only one FFT result over 10 for 1 mic to not flood the computer
+		nb_samples = 0;
+		sound_remote(micLeft_output);
 	}
 }
 	/*
@@ -154,13 +112,6 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 	*	1024 samples, then we compute the FFTs.
 	*
 	*/
-
-	
-
-//
-//void wait_send_to_computer(void){
-//	chBSemWait(&sendToComputer_sem);
-//}
 
 float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 	if(name == LEFT_CMPLX_INPUT){
