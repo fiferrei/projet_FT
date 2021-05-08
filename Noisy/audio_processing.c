@@ -29,14 +29,20 @@ static float micBack_output[FFT_SIZE];
 
 #define MIN_VALUE_THRESHOLD 10000
 
-#define MIN_FREQ 			10 //we don’t analyze before this index to not use resources for nothing
-#define FREQ_START_L 		11 //172Hz
-#define FREQ_START_H 		12 //187Hz
-#define FREQ_STOP_L 		65 //1016Hz
-#define FREQ_STOP_H 		66 //1031Hz
-#define MAX_FREQ 			70 //we don’t analyze after this index to not use resources for nothing
+#define MIN_FREQ 			60 //we don’t analyze before this index to not use resources for nothing
+#define FREQ_START_L 		61 //953 Hz
+#define FREQ_START_H 		62 //968 Hz
+#define FREQ_CELEBRATE_L	67 //1047 Hz
+#define FREQ_CELEBRATE_H	68 //1063 Hz
+#define FREQ_TRIANG_L		73 //1141 Hz
+#define FREQ_TRIANG_H		74 //1156 Hz
+#define FREQ_STOP_L 		78 //1219 Hz
+#define FREQ_STOP_H 		79 //1234 Hz
+#define MAX_FREQ 			80 //we don’t analyze after this index to not use resources for nothing
 #define ON					1
 
+static uint8_t state_celebrate=0;
+static uint8_t labyrinth=0;
 /*
 *	Callback called when the demodulation of the four microphones is done.
 *	We get 160 samples per mic every 10ms (16kHz)
@@ -46,24 +52,56 @@ static float micBack_output[FFT_SIZE];
 *							so we have [micRight1, micLeft1, micBack1, micFront1, micRight2, etc...]
 *	uint16_t num_samples	Tells how many data we get in total (should always be 640)
 */
-void sound_remote(float* data){
-	float max_norm = MIN_VALUE_THRESHOLD;
-	int16_t max_norm_index = -1;
+void sound_remote(float* data_left, float* data_right){
+	float max_norm_left = MIN_VALUE_THRESHOLD;
+	float max_norm_right = MIN_VALUE_THRESHOLD;
+	int16_t max_norm_index_left = -1;
+	int16_t max_norm_index_right = -1;
 	//search for the highest peak
 	for(uint16_t i = MIN_FREQ ; i <= MAX_FREQ ; i++){
-		if(data[i] > max_norm){
-			max_norm = data[i];
-			max_norm_index = i;
+		if(data_left[i] > max_norm_left){
+			max_norm_left = data_left[i];
+			max_norm_index_left = i;
+		}
+		if(data_right[i] > max_norm_right){
+			max_norm_right = data_right[i];
+			max_norm_index_right = i;
 		}
 	}
 	//allow the robot to move
-	if(max_norm_index >= FREQ_START_L && max_norm_index <= FREQ_START_H){
+	if(max_norm_index_left >= FREQ_START_L && max_norm_index_left <= FREQ_START_H){
 		start();
+		labyrinth=1;
+		state_celebrate=0;
+	}
+	//allow the robot to celebrate
+	if(max_norm_index_left >= FREQ_CELEBRATE_L && max_norm_index_left <= FREQ_CELEBRATE_H){
+		state_celebrate=1;
+	}
+	//comes to the user via sound
+	if(max_norm_index_left >= FREQ_TRIANG_L && max_norm_index_left <= FREQ_TRIANG_H){
+		chThdSleepMilliseconds(1000);
+		labyrinth=0;
+		state_celebrate=0;
+		triangulation(max_norm_index_left, max_norm_index_right);
 	}
 	//withdraw the permission to move
-	else if(max_norm_index >= FREQ_STOP_L && max_norm_index <= FREQ_STOP_H){
+	else if(max_norm_index_left >= FREQ_STOP_L && max_norm_index_left <= FREQ_STOP_H){
+		labyrinth=0;
+		state_celebrate=0;
 		stop();
 	}
+}
+
+void triangulation(int frequence_left, int frequence_right){
+	float phase_left = atan2f(micLeft_cmplx_input[2*frequence_left+1], micLeft_cmplx_input[2*frequence_left]);
+	float phase_right = atan2f(micRight_cmplx_input[2*frequence_right+1], micRight_cmplx_input[2*frequence_right]);
+	float dephasage=phase_right-phase_left;
+
+	if(dephasage>-1 && dephasage<1){ //avoid aberrant values
+		turn_angle(dephasage);
+	}
+	go_forward();
 }
 
 void processAudioData(int16_t *data, uint16_t num_samples){
@@ -72,10 +110,10 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 	//loop to fill the buffers
 	for(uint16_t i = 0 ; i < num_samples ; i+=4){
 		//construct an array of complex numbers. Put 0 to the imaginary part
-//		micRight_cmplx_input[nb_samples] = (float)data[i + MIC_RIGHT];
+		micRight_cmplx_input[nb_samples] = (float)data[i + MIC_RIGHT];
 		micLeft_cmplx_input[nb_samples] = (float)data[i + MIC_LEFT];
 		nb_samples++;
-//		micRight_cmplx_input[nb_samples] = 0;
+		micRight_cmplx_input[nb_samples] = 0;
 		micLeft_cmplx_input[nb_samples] = 0;
 		nb_samples++;
 		//stop when buffer is full
@@ -89,7 +127,7 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		* This FFT function stores the results in the input buffer given.
 		* This is an "In Place" function.
 		*/
-//		doFFT_optimized(FFT_SIZE, micRight_cmplx_input);
+		doFFT_optimized(FFT_SIZE, micRight_cmplx_input);
 		doFFT_optimized(FFT_SIZE, micLeft_cmplx_input);
 		/* Magnitude processing
 		*
@@ -98,11 +136,11 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		* real numbers.
 		*
 		*/
-//		arm_cmplx_mag_f32(micRight_cmplx_input, micRight_output, FFT_SIZE);
+		arm_cmplx_mag_f32(micRight_cmplx_input, micRight_output, FFT_SIZE);
 		arm_cmplx_mag_f32(micLeft_cmplx_input, micLeft_output, FFT_SIZE);
 		//sends only one FFT result over 10 for 1 mic to not flood the computer
 		nb_samples = 0;
-		sound_remote(micLeft_output);
+		sound_remote(micLeft_output, micRight_output);
 	}
 }
 	/*
@@ -143,3 +181,10 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 	}
 }
 
+uint8_t get_state_celebrate(void){
+	return state_celebrate;
+}
+
+uint8_t get_labyrinth(void){
+	return labyrinth;
+}

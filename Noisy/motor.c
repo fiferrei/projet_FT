@@ -6,17 +6,18 @@
 #include <capteurs.h>
 #include <audio/play_melody.h>
 
-#define POSITIVE_SPEED		400
-#define NEGATIVE_SPEED		-400
-#define CALIBRATE_SPEED		500
-#define CALIBRATE_STEP		200
-#define REDRESS_STEP		150
-#define DEMI_TOUR			650
-#define	QUART_DE_TOUR		325
-#define FINISH_CORNER		450
-#define RESET_VALUE			0
-#define ON					1
-#define OFF					0
+#define POSITIVE_SPEED			400
+#define NEGATIVE_SPEED			-400
+#define CALIBRATE_SPEED			500
+#define CALIBRATE_STEP			200
+#define REDRESS_STEP			150
+#define DEMI_TOUR				650
+#define	QUART_DE_TOUR			325
+#define FINISH_CORNER			450
+#define RESET_VALUE				0
+#define ON						1
+#define OFF						0
+#define CONVERSION_RAD_TO_STEP	415
 
 static uint8_t state_motor=0;
 
@@ -89,6 +90,26 @@ void go_forward(void){
 	if (state_motor==ON){
 		left_motor_set_speed(POSITIVE_SPEED);
 		right_motor_set_speed(POSITIVE_SPEED);
+	}
+}
+
+void turn_angle(float angle){
+	int nb_step = abs(CONVERSION_RAD_TO_STEP*angle);
+	if (state_motor == ON){
+		if (angle<0){
+			right_motor_set_pos(RESET_VALUE);
+			while(abs(right_motor_get_pos()) < nb_step){
+				left_motor_set_speed(NEGATIVE_SPEED);
+				right_motor_set_speed(POSITIVE_SPEED);
+			}
+		}
+		else {
+			right_motor_set_pos(RESET_VALUE);
+			while(abs(right_motor_get_pos()) < nb_step){
+				right_motor_set_speed(NEGATIVE_SPEED);
+				left_motor_set_speed(POSITIVE_SPEED);
+			}
+		}
 	}
 }
 

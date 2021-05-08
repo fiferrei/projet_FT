@@ -5,12 +5,13 @@
 #include <audio/play_melody.h>
 #include <leds.h>
 #include <motors.h>
+#include <audio_processing.h>
 
-#define SIDE_OBSTACLE			5
-#define FRONT_OBSTACLE			100
+#define SIDE_OBSTACLE			15
+#define FRONT_OBSTACLE			130
 #define NO_OBSTACLE_SECURITY	5
-#define NEED_CALIBRATION		40
-#define FRONT_SECURITY			5
+#define NEED_CALIBRATION		100
+#define FRONT_SECURITY			50
 #define RESET					0
 #define SET						1
 #define IR1						0
@@ -74,14 +75,14 @@ void proximity(void){
 			  (get_calibrated_prox(IR6)<SIDE_OBSTACLE || get_calibrated_prox(IR3)<SIDE_OBSTACLE)){
 		//go to the middle of the crossing
 		right_motor_set_pos(RESET);
-		while (abs(right_motor_get_pos())<400){
+		while (abs(right_motor_get_pos())<250 && redress==RESET){
 			go_forward();
 		}
 
 		//if no obstacle around all the robot celebrate
 		if (get_calibrated_prox(IR1)==RESET && get_calibrated_prox(IR2)==RESET && get_calibrated_prox(IR3)==RESET &&
 			get_calibrated_prox(IR4)==RESET && get_calibrated_prox(IR5)==RESET && get_calibrated_prox(IR6)==RESET &&
-			get_calibrated_prox(IR7)==RESET && get_calibrated_prox(IR8)==RESET){
+			get_calibrated_prox(IR7)==RESET && get_calibrated_prox(IR8)==RESET && get_state_celebrate()==SET){
 			celebrate();
 		}
 

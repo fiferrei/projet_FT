@@ -91,14 +91,17 @@ int main(void)
 
     /* Infinite loop. */
     while (1) {
-
-        //we copy the buffer to avoid conflicts
 //    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_calibrated_prox(0));
 //    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_calibrated_prox(7));
 //    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_calibrated_prox(2));
 //    	chprintf((BaseSequentialStream *)&SDU1, "%4d,",get_calibrated_prox(5));
-    	proximity();
+    	if (get_labyrinth()==1){
+    		proximity();
+    	}
+
+    	//we copy the buffer to avoid conflicts
         arm_copy_f32(get_audio_buffer_ptr(LEFT_OUTPUT), send_tab, FFT_SIZE);
+        arm_copy_f32(get_audio_buffer_ptr(RIGHT_OUTPUT), send_tab, FFT_SIZE);
         SendFloatToComputer((BaseSequentialStream *) &SD3, send_tab, FFT_SIZE);
     }
 }
