@@ -4,6 +4,7 @@
 #include <motors.h>
 #include <leds.h>
 #include <capteurs.h>
+#include <audio_processing.h>
 #include <audio/play_melody.h>
 
 #define POSITIVE_SPEED			400
@@ -11,6 +12,7 @@
 #define CALIBRATE_SPEED			500
 #define CALIBRATE_STEP			200
 #define REDRESS_STEP			150
+#define ONE_TURN				1300
 #define DEMI_TOUR				650
 #define	QUART_DE_TOUR			325
 #define FINISH_CORNER			450
@@ -28,7 +30,6 @@ void turn (void){
 		left_motor_set_speed(NEGATIVE_SPEED);
 		right_motor_set_speed(POSITIVE_SPEED);
 	}
-	right_motor_set_pos(RESET_VALUE);
 }
 
 //the robot turns back
@@ -185,11 +186,17 @@ uint8_t get_state_motor(void){
 
 //celebrate at the end of the labyrinth
 void celebrate(void){
-	turn();
-	while (get_state_motor()==SET){
+	right_motor_set_pos(RESET_VALUE);
+	while (abs(right_motor_get_pos())<ONE_TURN){
+		turn();
 		playMelody(SEVEN_NATION_ARMY, ML_SIMPLE_PLAY, NULL);
 	}
 	stopCurrentMelody();
+	set_body_led(OFF);
+	set_state_celebrate(OFF);
+	set_labyrinth(OFF);
+	left_motor_set_speed(OFF);
+	right_motor_set_speed(OFF);
 }
 
 

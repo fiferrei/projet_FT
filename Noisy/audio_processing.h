@@ -27,6 +27,8 @@ void triangulation(int frequence_left, int frequence_right);
 float* get_audio_buffer_ptr(BUFFER_NAME_t name);
 
 uint8_t get_state_celebrate(void);
+void set_state_celebrate(uint8_t state);
 uint8_t get_labyrinth(void);
+void set_labyrinth(uint8_t state);
 
 #endif /* AUDIO_PROCESSING_H */

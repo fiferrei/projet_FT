@@ -34,11 +34,11 @@ static float micBack_output[FFT_SIZE];
 #define FREQ_START_H 		62 //968 Hz
 #define FREQ_CELEBRATE_L	67 //1047 Hz
 #define FREQ_CELEBRATE_H	68 //1063 Hz
-#define FREQ_TRIANG_L		73 //1141 Hz
-#define FREQ_TRIANG_H		74 //1156 Hz
-#define FREQ_STOP_L 		78 //1219 Hz
-#define FREQ_STOP_H 		79 //1234 Hz
-#define MAX_FREQ 			80 //we don’t analyze after this index to not use resources for nothing
+#define FREQ_TRIANG_L		84 //1313 Hz
+#define FREQ_TRIANG_H		85 //1328 Hz
+#define FREQ_STOP_L 		95 //1485 Hz
+#define FREQ_STOP_H 		96 //1500 Hz
+#define MAX_FREQ 			100//we don’t analyze after this index to not use resources for nothing
 #define ON					1
 
 static uint8_t state_celebrate=0;
@@ -185,6 +185,14 @@ uint8_t get_state_celebrate(void){
 	return state_celebrate;
 }
 
+void set_state_celebrate(uint8_t state){
+	state_celebrate=state;
+}
+
 uint8_t get_labyrinth(void){
 	return labyrinth;
+}
+
+void set_labyrinth(uint8_t state){
+	labyrinth=state;
 }
