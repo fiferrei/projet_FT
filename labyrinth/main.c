@@ -18,7 +18,6 @@
 #include <capteurs.h>
 #include <audio_processing.h>
 #include <fft.h>
-#include <communications.h>
 #include <arm_math.h>
 
 #define ON 		1
@@ -90,10 +89,6 @@ int main(void)
 
     /* Infinite loop. */
     while (1) {
-//    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_calibrated_prox(0));
-//    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_calibrated_prox(7));
-//    	chprintf((BaseSequentialStream *)&SDU1, "%4d,", get_calibrated_prox(2));
-//    	chprintf((BaseSequentialStream *)&SDU1, "%4d,",get_calibrated_prox(5));
     	if (get_labyrinth()==1){
     		proximity();
     	}
@@ -101,7 +96,6 @@ int main(void)
     	//we copy the buffer to avoid conflicts
         arm_copy_f32(get_audio_buffer_ptr(LEFT_OUTPUT), send_tab, FFT_SIZE);
         arm_copy_f32(get_audio_buffer_ptr(RIGHT_OUTPUT), send_tab, FFT_SIZE);
-        SendFloatToComputer((BaseSequentialStream *) &SD3, send_tab, FFT_SIZE);
     }
 }
 

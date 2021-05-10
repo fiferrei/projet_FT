@@ -1,20 +1,18 @@
 #include <stdlib.h>
-#include <stdint.h>
 #include <sensors/proximity.h>
 #include <motor.h>
 #include <audio/play_melody.h>
-#include <leds.h>
 #include <motors.h>
 #include <audio_processing.h>
 
 #define SIDE_OBSTACLE			10
-#define FRONT_OBSTACLE			110
+#define FRONT_OBSTACLE			140
 #define NO_OBSTACLE_SECURITY	15
 #define NEED_CALIBRATION		80
 #define FRONT_SECURITY			30
 #define MIDDLE_CROSS			250
-#define MIDDLE_CROSS_R			20
-#define OUT_CROSS				400
+#define MIDDLE_CROSS_R			35
+#define OUT_CROSS				500
 #define RESET					0
 #define SET						1
 #define IR1						0
