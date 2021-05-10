@@ -4,7 +4,7 @@
 #include <usbcfg.h>
 #include <chprintf.h>
 
-//#include <motors.h>
+#include <motors.h>
 #include <motor.h>
 #include <audio/microphone.h>
 #include <audio_processing.h>
@@ -28,17 +28,16 @@ static float micBack_output[FFT_SIZE];
 
 #define MIN_VALUE_THRESHOLD 10000
 
-#define MIN_FREQ 			60 //we don’t analyze before this index to not use resources for nothing
-#define FREQ_START_L 		61 //953 Hz
-#define FREQ_START_H 		62 //968 Hz
+#define MIN_FREQ 			25 //we don’t analyze before this index to not use resources for nothing
+#define FREQ_START_L 		80 //1250 Hz
+#define FREQ_START_H 		81 //1265 Hz
 #define FREQ_CELEBRATE_L	67 //1047 Hz
 #define FREQ_CELEBRATE_H	68 //1063 Hz
-#define FREQ_TRIANG_L		84 //1313 Hz
-#define FREQ_TRIANG_H		85 //1328 Hz
-#define FREQ_STOP_L 		95 //1485 Hz
-#define FREQ_STOP_H 		96 //1500 Hz
+#define FREQ_TRIANG_L		28 //438 Hz
+#define FREQ_TRIANG_H		29 //453 Hz
 #define MAX_FREQ 			100//we don’t analyze after this index to not use resources for nothing
 #define ON					1
+#define RESET_VALUE			0
 
 static uint8_t state_celebrate=0;
 static uint8_t labyrinth=0;
@@ -70,37 +69,29 @@ void sound_remote(float* data_left, float* data_right){
 	//allow the robot to move
 	if(max_norm_index_left >= FREQ_START_L && max_norm_index_left <= FREQ_START_H){
 		start();
-		labyrinth=1;
-		state_celebrate=0;
+		labyrinth=ON;
+		state_celebrate=RESET_VALUE;
 	}
 	//allow the robot to celebrate
 	if(max_norm_index_left >= FREQ_CELEBRATE_L && max_norm_index_left <= FREQ_CELEBRATE_H){
-		state_celebrate=1;
+		state_celebrate=ON;
 	}
 	//comes to the user via sound
-	if(max_norm_index_left >= FREQ_TRIANG_L && max_norm_index_left <= FREQ_TRIANG_H){
-		chThdSleepMilliseconds(1000);
-		labyrinth=0;
-		state_celebrate=0;
+	if(max_norm_index_left >= FREQ_TRIANG_L && max_norm_index_left <= FREQ_TRIANG_H && get_come_home()==ON){
+		labyrinth=RESET_VALUE;
+		state_celebrate=RESET_VALUE;
 		triangulation(max_norm_index_left, max_norm_index_right);
-	}
-	//withdraw the permission to move
-	else if(max_norm_index_left >= FREQ_STOP_L && max_norm_index_left <= FREQ_STOP_H){
-		labyrinth=0;
-		state_celebrate=0;
-		stop();
 	}
 }
 
-void triangulation(int frequence_left, int frequence_right){
+void triangulation(int16_t frequence_left, int16_t frequence_right){
 	float phase_left = atan2f(micLeft_cmplx_input[2*frequence_left+1], micLeft_cmplx_input[2*frequence_left]);
 	float phase_right = atan2f(micRight_cmplx_input[2*frequence_right+1], micRight_cmplx_input[2*frequence_right]);
-	float dephasage=phase_right-phase_left;
+	int16_t dephasage=(phase_right-phase_left)*180/PI;
 
-	if(dephasage>-1 && dephasage<1){ //avoid aberrant values
+	if(dephasage>-46 && dephasage<46 && abs(right_motor_get_pos()==RESET_VALUE)){ //avoid aberrant values
 		turn_angle(dephasage);
 	}
-	go_forward();
 }
 
 void processAudioData(int16_t *data, uint16_t num_samples){

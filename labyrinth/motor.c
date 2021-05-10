@@ -12,16 +12,18 @@
 #define CALIBRATE_SPEED			500
 #define CALIBRATE_STEP			200
 #define REDRESS_STEP			150
-#define ONE_TURN				1300
+#define TWO_TURNS				2600
 #define DEMI_TOUR				650
 #define	QUART_DE_TOUR			325
 #define FINISH_CORNER			450
 #define RESET_VALUE				0
 #define ON						1
 #define OFF						0
-#define CONVERSION_RAD_TO_STEP	415
+#define CONVERSION_STEP			7.222f
+#define STRAIGHT_LINE			1400
 
 static uint8_t state_motor=0;
+static _Bool come_home=0;
 
 //the robot turns on itself
 void turn (void){
@@ -96,23 +98,41 @@ void go_forward(void){
 	}
 }
 
-void turn_angle(float angle){
-	int nb_step = abs(CONVERSION_RAD_TO_STEP*angle);
+void go_forward_step(void){
+	if (state_motor==ON){
+		int16_t nb_step = abs(right_motor_get_pos()) + STRAIGHT_LINE;
+		set_led(LED1, ON);
+		while(abs(right_motor_get_pos()) < nb_step){
+			left_motor_set_speed(POSITIVE_SPEED);
+			right_motor_set_speed(POSITIVE_SPEED);
+		}
+		set_led(LED1, OFF);
+		right_motor_set_pos(RESET_VALUE);
+		stop();
+	}
+}
+
+void turn_angle(int16_t angle){
+	int16_t nb_step = abs(CONVERSION_STEP*angle);		//465*angle //415*angle
 	if (state_motor == ON){
-		if (angle<0){
-			right_motor_set_pos(RESET_VALUE);
+		right_motor_set_pos(RESET_VALUE);
+		if (angle < 0){
+			set_led(LED7, ON);
 			while(abs(right_motor_get_pos()) < nb_step){
 				left_motor_set_speed(NEGATIVE_SPEED);
 				right_motor_set_speed(POSITIVE_SPEED);
 			}
+			set_led(LED7,OFF);
 		}
 		else {
-			right_motor_set_pos(RESET_VALUE);
+			set_led(LED3, ON);
 			while(abs(right_motor_get_pos()) < nb_step){
 				right_motor_set_speed(NEGATIVE_SPEED);
 				left_motor_set_speed(POSITIVE_SPEED);
 			}
+			set_led(LED3,OFF);
 		}
+		go_forward_step();
 	}
 }
 
@@ -168,6 +188,9 @@ void stop(void){
 	set_front_led(OFF);
 	set_body_led(OFF);
 	set_led(LED5,ON);
+	come_home=OFF;
+	set_labyrinth(OFF);
+	set_state_celebrate(OFF);
 	left_motor_set_speed(OFF);
 	right_motor_set_speed(OFF);
 }
@@ -187,7 +210,7 @@ uint8_t get_state_motor(void){
 //celebrate at the end of the labyrinth
 void celebrate(void){
 	right_motor_set_pos(RESET_VALUE);
-	while (abs(right_motor_get_pos())<ONE_TURN){
+	while (abs(right_motor_get_pos())<TWO_TURNS){
 		turn();
 		playMelody(SEVEN_NATION_ARMY, ML_SIMPLE_PLAY, NULL);
 	}
@@ -197,6 +220,12 @@ void celebrate(void){
 	set_labyrinth(OFF);
 	left_motor_set_speed(OFF);
 	right_motor_set_speed(OFF);
+	come_home=ON;
+	right_motor_set_pos(RESET_VALUE);
+}
+
+_Bool get_come_home(void){
+	return come_home;
 }
 
 

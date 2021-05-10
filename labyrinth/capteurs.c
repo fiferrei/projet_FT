@@ -7,11 +7,14 @@
 #include <motors.h>
 #include <audio_processing.h>
 
-#define SIDE_OBSTACLE			5
-#define FRONT_OBSTACLE			115
+#define SIDE_OBSTACLE			10
+#define FRONT_OBSTACLE			110
 #define NO_OBSTACLE_SECURITY	15
 #define NEED_CALIBRATION		80
-#define FRONT_SECURITY			25
+#define FRONT_SECURITY			30
+#define MIDDLE_CROSS			250
+#define MIDDLE_CROSS_R			20
+#define OUT_CROSS				400
 #define RESET					0
 #define SET						1
 #define IR1						0
@@ -72,11 +75,11 @@ void proximity(void){
 			  (get_calibrated_prox(IR6)<SIDE_OBSTACLE || get_calibrated_prox(IR3)<SIDE_OBSTACLE)){
 		//go to the middle of the crossing
 		right_motor_set_pos(RESET);
-		while (abs(right_motor_get_pos())<250 && redress==RESET){
+		while (abs(right_motor_get_pos())<MIDDLE_CROSS && redress==RESET){
 			go_forward();
 		}
 		right_motor_set_pos(RESET);
-		while (abs(right_motor_get_pos())<25 && redress==SET){
+		while (abs(right_motor_get_pos())<MIDDLE_CROSS_R && redress==SET){
 			go_forward();
 		}
 
@@ -91,7 +94,11 @@ void proximity(void){
 			      get_calibrated_prox(IR6)<SIDE_OBSTACLE && get_calibrated_prox(IR3)>SIDE_OBSTACLE && impasse==RESET){
 			playNote(LA, QUARTER_SECOND);
 			virage=RESET;
-			go_forward();
+			//go out of the crossing
+			right_motor_set_pos(RESET);
+			while(abs(right_motor_get_pos())<OUT_CROSS){
+				go_forward();
+			}
 		}
 
 		//croisement sans obstacle devant et à gauche 2ème tentative
@@ -108,7 +115,11 @@ void proximity(void){
 				  get_calibrated_prox(IR6)>SIDE_OBSTACLE && get_calibrated_prox(IR3)<SIDE_OBSTACLE && impasse==RESET){
 			playNote(LA, QUARTER_SECOND);
 			virage=RESET;
-			go_forward();
+			//go out of the crossing
+			right_motor_set_pos(RESET);
+			while(abs(right_motor_get_pos())<OUT_CROSS){
+				go_forward();
+			}
 		}
 
 		//croisement sans obstacle devant et à droite 2ème tentative
@@ -125,13 +136,18 @@ void proximity(void){
 				  get_calibrated_prox(IR6)<SIDE_OBSTACLE && get_calibrated_prox(IR3)<SIDE_OBSTACLE && impasse==RESET){
 			playNote(LA, QUARTER_SECOND);
 			virage=RESET;
-			go_forward();
+			//go out of the crossing
+			right_motor_set_pos(RESET);
+			while(abs(right_motor_get_pos())<OUT_CROSS){
+				go_forward();
+			}
 		}
 
 		//croisement sans obstacle devant, à gauche et à droite 2ème tentative
 		else if ((get_calibrated_prox(IR1)<FRONT_OBSTACLE || get_calibrated_prox(IR8)<FRONT_OBSTACLE) &&
 				  get_calibrated_prox(IR6)<SIDE_OBSTACLE && get_calibrated_prox(IR3)<SIDE_OBSTACLE && impasse==SET && virage==RESET){
 			virage=SET;
+			impasse=RESET;
 			playNote(LA, QUARTER_SECOND);
 			quarter_turn_left();
 		}
@@ -142,7 +158,11 @@ void proximity(void){
 			virage=RESET;
 			impasse=RESET;
 			playNote(LA, QUARTER_SECOND);
-			go_forward();
+			//go out of the crossing
+			right_motor_set_pos(RESET);
+			while(abs(right_motor_get_pos())<OUT_CROSS){
+				go_forward();
+			}
 		}
 	}
 }

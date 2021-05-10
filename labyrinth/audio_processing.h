@@ -19,7 +19,7 @@ typedef enum {
 
 
 void processAudioData(int16_t *data, uint16_t num_samples);
-void triangulation(int frequence_left, int frequence_right);
+void triangulation(int16_t frequence_left, int16_t frequence_right);
 
 /*
 *	Returns the pointer to the BUFFER_NAME_t buffer asked
