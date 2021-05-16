@@ -8,13 +8,9 @@ typedef enum {
 	//2 times FFT_SIZE because these arrays contain complex numbers (real + imaginary)
 	LEFT_CMPLX_INPUT = 0,
 	RIGHT_CMPLX_INPUT,
-	FRONT_CMPLX_INPUT,
-	BACK_CMPLX_INPUT,
 	//Arrays containing the computed magnitude of the complex numbers
 	LEFT_OUTPUT,
 	RIGHT_OUTPUT,
-	FRONT_OUTPUT,
-	BACK_OUTPUT
 } BUFFER_NAME_t;
 
 
@@ -26,9 +22,9 @@ void triangulation(int16_t frequence_left, int16_t frequence_right);
 */
 float* get_audio_buffer_ptr(BUFFER_NAME_t name);
 
-uint8_t get_state_celebrate(void);
-void set_state_celebrate(uint8_t state);
-uint8_t get_labyrinth(void);
-void set_labyrinth(uint8_t state);
+_Bool get_state_celebrate(void);
+void set_state_celebrate(_Bool state);
+_Bool get_labyrinth(void);
+void set_labyrinth(_Bool state);
 
 #endif /* AUDIO_PROCESSING_H */

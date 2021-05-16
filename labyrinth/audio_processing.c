@@ -1,60 +1,46 @@
-#include "ch.h"
-#include "hal.h"
 #include <main.h>
-#include <usbcfg.h>
-#include <chprintf.h>
-
 #include <motors.h>
 #include <motor.h>
 #include <audio/microphone.h>
 #include <audio_processing.h>
-//#include <communications.h>
 #include <fft.h>
 #include <arm_math.h>
-
-//semaphore
-static BSEMAPHORE_DECL(sendToComputer_sem, TRUE);
 
 //2 times FFT_SIZE because these arrays contain complex numbers (real + imaginary)
 static float micLeft_cmplx_input[2 * FFT_SIZE];
 static float micRight_cmplx_input[2 * FFT_SIZE];
-static float micFront_cmplx_input[2 * FFT_SIZE];
-static float micBack_cmplx_input[2 * FFT_SIZE];
 //Arrays containing the computed magnitude of the complex numbers
 static float micLeft_output[FFT_SIZE];
 static float micRight_output[FFT_SIZE];
-static float micFront_output[FFT_SIZE];
-static float micBack_output[FFT_SIZE];
 
 #define MIN_VALUE_THRESHOLD 10000
-
 #define MIN_FREQ 			25 //we don’t analyze before this index to not use resources for nothing
-#define FREQ_START_L 		80 //1250 Hz
-#define FREQ_START_H 		81 //1265 Hz
-#define FREQ_CELEBRATE_L	67 //1047 Hz
-#define FREQ_CELEBRATE_H	68 //1063 Hz
+//triangulation is better with small frequencies
 #define FREQ_TRIANG_L		28 //438 Hz
 #define FREQ_TRIANG_H		29 //453 Hz
+//high frequencies are needed so that the celebration and the start are not activated while the robot is running
+#define FREQ_CELEBRATE_L	67 //1047 Hz
+#define FREQ_CELEBRATE_H	68 //1062 Hz
+#define FREQ_START_L 		80 //1250 Hz
+#define FREQ_START_H 		81 //1265 Hz
 #define MAX_FREQ 			100//we don’t analyze after this index to not use resources for nothing
 #define ON					1
 #define RESET_VALUE			0
+#define START_INDEX			-1
+#define MAX_ANGLE			46
+#define MIN_ANGLE			-46
 
-static uint8_t state_celebrate=0;
-static uint8_t labyrinth=0;
+static _Bool state_celebrate=RESET_VALUE;
+static _Bool labyrinth=RESET_VALUE;
 /*
-*	Callback called when the demodulation of the four microphones is done.
-*	We get 160 samples per mic every 10ms (16kHz)
-*	
-*	params :
-*	int16_t *data			Buffer containing 4 times 160 samples. the samples are sorted by micro
-*							so we have [micRight1, micLeft1, micBack1, micFront1, micRight2, etc...]
-*	uint16_t num_samples	Tells how many data we get in total (should always be 640)
+ * Finds the frequency of the signal
+ * then calls different functions depending on said frequency
 */
 void sound_remote(float* data_left, float* data_right){
 	float max_norm_left = MIN_VALUE_THRESHOLD;
 	float max_norm_right = MIN_VALUE_THRESHOLD;
-	int16_t max_norm_index_left = -1;
-	int16_t max_norm_index_right = -1;
+	int16_t max_norm_index_left = START_INDEX;
+	int16_t max_norm_index_right = START_INDEX;
 	//search for the highest peak
 	for(uint16_t i = MIN_FREQ ; i <= MAX_FREQ ; i++){
 		if(data_left[i] > max_norm_left){
@@ -72,11 +58,11 @@ void sound_remote(float* data_left, float* data_right){
 		labyrinth=ON;
 		state_celebrate=RESET_VALUE;
 	}
-	//allow the robot to celebrate
+	//allow the robot to celebrate (when he got out of the labyrinth)
 	if(max_norm_index_left >= FREQ_CELEBRATE_L && max_norm_index_left <= FREQ_CELEBRATE_H){
 		state_celebrate=ON;
 	}
-	//comes to the user via sound
+	//comes to the user via sound (once he celebrated)
 	if(max_norm_index_left >= FREQ_TRIANG_L && max_norm_index_left <= FREQ_TRIANG_H && get_come_home()==ON){
 		labyrinth=RESET_VALUE;
 		state_celebrate=RESET_VALUE;
@@ -84,16 +70,25 @@ void sound_remote(float* data_left, float* data_right){
 	}
 }
 
+/*
+ * Finds the angle of the incoming sound
+ * frequence_left and frequence_right should be the same, 440 Hz here (FREQ_TRIANG)
+ */
 void triangulation(int16_t frequence_left, int16_t frequence_right){
 	float phase_left = atan2f(micLeft_cmplx_input[2*frequence_left+1], micLeft_cmplx_input[2*frequence_left]);
 	float phase_right = atan2f(micRight_cmplx_input[2*frequence_right+1], micRight_cmplx_input[2*frequence_right]);
-	int16_t dephasage=(phase_right-phase_left)*180/PI;
+	int16_t dephasage=(phase_right-phase_left)*180/PI; //compute the phase difference, which gives the angle
 
-	if(dephasage>-46 && dephasage<46 && abs(right_motor_get_pos()==RESET_VALUE)){ //avoid aberrant values
+	//avoid aberrant values and check if the robot is already moving
+	if(dephasage>MIN_ANGLE && dephasage<MAX_ANGLE && abs(right_motor_get_pos()==RESET_VALUE)){
 		turn_angle(dephasage);
 	}
 }
 
+/*
+*	Callback called when the demodulation of the microphones is done.
+*	We get 160 samples per mic every 10ms (16kHz)
+*/
 void processAudioData(int16_t *data, uint16_t num_samples){
 
 	static uint16_t nb_samples = 0;
@@ -112,34 +107,19 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		}
 	}
 	if(nb_samples >= (2 * FFT_SIZE)){
-		/* FFT proccessing
-	 	*
-		* This FFT function stores the results in the input buffer given.
-		* This is an "In Place" function.
-		*/
+		// FFT proccessing
 		doFFT_optimized(FFT_SIZE, micRight_cmplx_input);
 		doFFT_optimized(FFT_SIZE, micLeft_cmplx_input);
-		/* Magnitude processing
-		*
-		* Computes the magnitude of the complex numbers and
-		* stores them in a buffer of FFT_SIZE because it only contains
-		* real numbers.
-		*
-		*/
+
+		// Magnitude processing
 		arm_cmplx_mag_f32(micRight_cmplx_input, micRight_output, FFT_SIZE);
 		arm_cmplx_mag_f32(micLeft_cmplx_input, micLeft_output, FFT_SIZE);
-		//sends only one FFT result over 10 for 1 mic to not flood the computer
+
+		//sends only one FFT result over 10
 		nb_samples = 0;
 		sound_remote(micLeft_output, micRight_output);
 	}
 }
-	/*
-	*
-	*	We get 160 samples per mic every 10ms
-	*	So we fill the samples buffers to reach
-	*	1024 samples, then we compute the FFTs.
-	*
-	*/
 
 float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 	if(name == LEFT_CMPLX_INPUT){
@@ -148,41 +128,29 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 	else if (name == RIGHT_CMPLX_INPUT){
 		return micRight_cmplx_input;
 	}
-	else if (name == FRONT_CMPLX_INPUT){
-		return micFront_cmplx_input;
-	}
-	else if (name == BACK_CMPLX_INPUT){
-		return micBack_cmplx_input;
-	}
 	else if (name == LEFT_OUTPUT){
 		return micLeft_output;
 	}
 	else if (name == RIGHT_OUTPUT){
 		return micRight_output;
 	}
-	else if (name == FRONT_OUTPUT){
-		return micFront_output;
-	}
-	else if (name == BACK_OUTPUT){
-		return micBack_output;
-	}
 	else{
 		return NULL;
 	}
 }
 
-uint8_t get_state_celebrate(void){
+_Bool get_state_celebrate(void){
 	return state_celebrate;
 }
 
-void set_state_celebrate(uint8_t state){
+void set_state_celebrate(_Bool state){
 	state_celebrate=state;
 }
 
-uint8_t get_labyrinth(void){
+_Bool get_labyrinth(void){
 	return labyrinth;
 }
 
-void set_labyrinth(uint8_t state){
+void set_labyrinth(_Bool state){
 	labyrinth=state;
 }

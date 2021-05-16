@@ -1,20 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "ch.h"
 #include "hal.h"
 #include "memory_protection.h"
 #include <usbcfg.h>
 #include <main.h>
-#include <chprintf.h>
 #include <motors.h>
 #include <msgbus/messagebus.h>
 #include <sensors/proximity.h>
 #include <audio/microphone.h>
 #include <audio/audio_thread.h>
 #include <audio/play_melody.h>
-
 #include <capteurs.h>
 #include <audio_processing.h>
 #include <fft.h>

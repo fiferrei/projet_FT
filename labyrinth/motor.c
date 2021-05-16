@@ -21,8 +21,8 @@
 #define CONVERSION_STEP			7.222f
 #define STRAIGHT_LINE			1400
 
-static uint8_t state_motor=0;
-static _Bool come_home=0;
+static uint8_t state_motor=OFF;
+static _Bool come_home=RESET_VALUE;
 
 //the robot turns on itself
 void turn (void){
@@ -97,6 +97,7 @@ void go_forward(void){
 	}
 }
 
+//the robot goes forward for a certain number of steps
 void go_forward_step(void){
 	if (state_motor==ON){
 		int16_t nb_step = abs(right_motor_get_pos()) + STRAIGHT_LINE;
@@ -111,11 +112,13 @@ void go_forward_step(void){
 	}
 }
 
+//the robot turns for a given angle
 void turn_angle(int16_t angle){
-	int16_t nb_step = abs(CONVERSION_STEP*angle);		//465*angle //415*angle
+	int16_t nb_step = abs(CONVERSION_STEP*angle);
 	if (state_motor == ON){
 		right_motor_set_pos(RESET_VALUE);
 		if (angle < 0){
+			//if negative angle
 			set_led(LED7, ON);
 			while(abs(right_motor_get_pos()) < nb_step){
 				left_motor_set_speed(NEGATIVE_SPEED);
@@ -124,6 +127,7 @@ void turn_angle(int16_t angle){
 			set_led(LED7,OFF);
 		}
 		else {
+			//if positive angle
 			set_led(LED3, ON);
 			while(abs(right_motor_get_pos()) < nb_step){
 				right_motor_set_speed(NEGATIVE_SPEED);
