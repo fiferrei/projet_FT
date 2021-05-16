@@ -86,7 +86,7 @@ int main(void)
 
     /* Infinite loop. */
     while (1) {
-    	if (get_labyrinth()==1){
+    	if (get_labyrinth()==ON){
     		proximity();
     	}
 
