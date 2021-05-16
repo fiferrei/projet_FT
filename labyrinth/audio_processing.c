@@ -24,6 +24,7 @@ static float micRight_output[FFT_SIZE];
 #define FREQ_START_L 		80 //1250 Hz
 #define FREQ_START_H 		81 //1265 Hz
 #define MAX_FREQ 			100//we don’t analyze after this index to not use resources for nothing
+
 #define ON					1
 #define RESET_VALUE			0
 #define START_INDEX			-1
